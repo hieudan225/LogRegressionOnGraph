@@ -16,7 +16,7 @@ labeled_users = labels["participant"]
 label_dict = {}
 
 for i, label in labels.iterrows():
-    label_dict[label["participant"]] = label["label"]
+    label_dict[label["participant"]] = (int(label["label"]) + 1) / 2
 # buyers = network_data['buyer'].unique()
 # sellers = network_data['seller'].unique()
 # participants = np.unique(np.concatenate([buyers, sellers]))
@@ -254,7 +254,7 @@ dataset = pd.DataFrame({'node': parsed_node, 'indegree': indegree, 'outdegree':o
     'to_rating_top_3_diff_norm': to_rating_top_3_diff_norm, 'to_rating_top_4_diff_norm': to_rating_top_4_diff_norm, 
     'to_rating_top_5_diff_norm': to_rating_top_5_diff_norm, 
     'label': parsed_label},
-    columns=['node', 'indegree', 'outdegree', 'avg_ratings_gave', "avg_ratings_received"
+    columns=['node', 'indegree', 'outdegree', 'avg_ratings_gave', "avg_ratings_received",
     'std_ratings_gave', "std_ratings_received",
     'from_rating_top_1_diff', 'from_rating_top_2_diff',
     'from_rating_top_3_diff', 'from_rating_top_4_diff', 
@@ -274,8 +274,8 @@ dataset = pd.DataFrame({'node': parsed_node, 'indegree': indegree, 'outdegree':o
     'to_rating_top_1_diff_norm', 'to_rating_top_2_diff_norm',
     'to_rating_top_3_diff_norm', 'to_rating_top_4_diff_norm', 
     'to_rating_top_5_diff_norm', 'label'])
-
-dataset.to_csv("dataset.csv")
+dataset = dataset.sample(frac=1)
+dataset.to_csv("dataset.csv", index=False)
 print("done")
 
 
