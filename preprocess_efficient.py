@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import queue
+from collections import defaultdict
 
 network_data_path = "./data/epinions/epinions_network.csv"
 # network_data_path = "./data/alpha/alpha_network.csv"
@@ -24,22 +25,28 @@ print("0")
 print(network_data.shape[0]) # 13668104
 sellers_rating_received = {}
 buyers_rating_gave = {}
+buyer_degree = defaultdict(set)
+seller_degree = defaultdict(set)
 
 for i, txn in network_data.iterrows():
     # print(i)
-    if txn["buyer"] not in buyers_rating_gave:
+    buyer = txn["buyer"]
+    seller = txn["seller"]
+    if buyer not in buyers_rating_gave:
         buyers_rating_gave[txn["buyer"]] = []
-    if txn["seller"] not in sellers_rating_received:
+    if seller not in sellers_rating_received:
         sellers_rating_received[txn["seller"]] = []
     buyers_rating_gave[txn["buyer"]].append(txn["rating"])
     sellers_rating_received[txn["seller"]].append(txn["rating"])
+
+    buyer_degree[buyer].add(seller)
+    seller_degree[seller].add(buyer)
 print("1")
 buyer_avg_ratings = {}
 buyer_std_ratings = {}
 seller_avg_ratings = {}
 seller_std_ratings = {}
-buyer_degree = {}
-seller_degree = {}
+
 
 for k, v in buyers_rating_gave.items():
     mean = np.mean(v)
@@ -49,7 +56,6 @@ for k, v in buyers_rating_gave.items():
         std = np.std(v)
     buyer_avg_ratings[k] = mean
     buyer_std_ratings[k] = std
-    buyer_degree[k] = len(v)
 for k, v in sellers_rating_received.items():
     mean = np.mean(v)
     if len(v) < 2:
@@ -58,7 +64,6 @@ for k, v in sellers_rating_received.items():
         std = np.std(v)
     seller_avg_ratings[k] = mean
     seller_std_ratings[k] = std
-    seller_degree[k] = len(v)
 print("2")
 buyer_rating_top_5_diff_norm = {}
 seller_rating_top_5_diff_norm = {}
@@ -115,32 +120,16 @@ from_rating_top_1_diff_norm = []
 from_rating_top_2_diff = []
 from_rating_last_2_diff = []
 from_rating_top_2_diff_norm = []
-from_rating_top_3_diff = []
-from_rating_last_3_diff = []
-from_rating_top_3_diff_norm = []
-from_rating_top_4_diff = []
-from_rating_last_4_diff = []
-from_rating_top_4_diff_norm = []
-from_rating_top_5_diff = []
-from_rating_last_5_diff = []
-from_rating_top_5_diff_norm = []
+
 to_rating_top_1_diff = []
 to_rating_last_1_diff = []
 to_rating_top_1_diff_norm = []
 to_rating_top_2_diff = []
 to_rating_last_2_diff = []
 to_rating_top_2_diff_norm = []
-to_rating_top_3_diff = []
-to_rating_last_3_diff = []
-to_rating_top_3_diff_norm = []
-to_rating_top_4_diff = []
-to_rating_last_4_diff = []
-to_rating_top_4_diff_norm = []
-to_rating_top_5_diff = []
-to_rating_last_5_diff = []
-to_rating_top_5_diff_norm = []
 
-parsed_label = []
+
+parsed_label = [] 
 parsed_node = []
 for node in labeled_users:
     if node in buyer_avg_ratings:
@@ -151,42 +140,25 @@ for node in labeled_users:
         indegree.append(0.0)
         to_rating_top_1_diff.append(0.0)
         to_rating_top_2_diff.append(0.0)
-        to_rating_top_3_diff.append(0.0)
-        to_rating_top_4_diff.append(0.0)
-        to_rating_top_5_diff.append(0.0)
 
         to_rating_last_1_diff.append(0.0)
         to_rating_last_2_diff.append(0.0)
-        to_rating_last_3_diff.append(0.0)
-        to_rating_last_4_diff.append(0.0)
-        to_rating_last_5_diff.append(0.0)
+     
 
         to_rating_top_1_diff_norm.append(0.0)
         to_rating_top_2_diff_norm.append(0.0)
-        to_rating_top_3_diff_norm.append(0.0)
-        to_rating_top_4_diff_norm.append(0.0)
-        to_rating_top_5_diff_norm.append(0.0)
 
         avg_ratings_gave.append(buyer_avg_ratings[node])
         std_ratings_gave.append(buyer_std_ratings[node])
-        outdegree.append(buyer_degree[node])
+        outdegree.append(len(buyer_degree[node]))
         from_rating_top_1_diff.append(buyer_rating_top_5_diff[node][0])
         from_rating_top_2_diff.append(buyer_rating_top_5_diff[node][1])
-        from_rating_top_3_diff.append(buyer_rating_top_5_diff[node][2])
-        from_rating_top_4_diff.append(buyer_rating_top_5_diff[node][3])
-        from_rating_top_5_diff.append(buyer_rating_top_5_diff[node][4])
 
         from_rating_last_1_diff.append(buyer_rating_last_5_diff[node][0])
         from_rating_last_2_diff.append(buyer_rating_last_5_diff[node][1])
-        from_rating_last_3_diff.append(buyer_rating_last_5_diff[node][2])
-        from_rating_last_4_diff.append(buyer_rating_last_5_diff[node][3])
-        from_rating_last_5_diff.append(buyer_rating_last_5_diff[node][4])
 
         from_rating_top_1_diff_norm.append(buyer_rating_top_5_diff_norm[node][0])
         from_rating_top_2_diff_norm.append(buyer_rating_top_5_diff_norm[node][1])
-        from_rating_top_3_diff_norm.append(buyer_rating_top_5_diff_norm[node][2])
-        from_rating_top_4_diff_norm.append(buyer_rating_top_5_diff_norm[node][3])
-        from_rating_top_5_diff_norm.append(buyer_rating_top_5_diff_norm[node][4])
     elif node in seller_avg_ratings:
         parsed_node.append(node)
         parsed_label.append(label_dict[node])
@@ -195,87 +167,48 @@ for node in labeled_users:
         outdegree.append(0.0)
         from_rating_top_1_diff.append(0.0)
         from_rating_top_2_diff.append(0.0)
-        from_rating_top_3_diff.append(0.0)
-        from_rating_top_4_diff.append(0.0)
-        from_rating_top_5_diff.append(0.0)
 
         from_rating_last_1_diff.append(0.0)
         from_rating_last_2_diff.append(0.0)
-        from_rating_last_3_diff.append(0.0)
-        from_rating_last_4_diff.append(0.0)
-        from_rating_last_5_diff.append(0.0)
 
         from_rating_top_1_diff_norm.append(0.0)
         from_rating_top_2_diff_norm.append(0.0)
-        from_rating_top_3_diff_norm.append(0.0)
-        from_rating_top_4_diff_norm.append(0.0)
-        from_rating_top_5_diff_norm.append(0.0)
 
         avg_ratings_received.append(seller_avg_ratings[node])
         std_ratings_received.append(seller_std_ratings[node])
-        indegree.append(seller_degree[node])
+        indegree.append(len(seller_degree[node]))
         to_rating_top_1_diff.append(seller_rating_top_5_diff[node][0])
         to_rating_top_2_diff.append(seller_rating_top_5_diff[node][1])
-        to_rating_top_3_diff.append(seller_rating_top_5_diff[node][2])
-        to_rating_top_4_diff.append(seller_rating_top_5_diff[node][3])
-        to_rating_top_5_diff.append(seller_rating_top_5_diff[node][4])
 
         to_rating_last_1_diff.append(seller_rating_last_5_diff[node][0])
         to_rating_last_2_diff.append(seller_rating_last_5_diff[node][1])
-        to_rating_last_3_diff.append(seller_rating_last_5_diff[node][2])
-        to_rating_last_4_diff.append(seller_rating_last_5_diff[node][3])
-        to_rating_last_5_diff.append(seller_rating_last_5_diff[node][4])
 
         to_rating_top_1_diff_norm.append(seller_rating_top_5_diff_norm[node][0])
         to_rating_top_2_diff_norm.append(seller_rating_top_5_diff_norm[node][1])
-        to_rating_top_3_diff_norm.append(seller_rating_top_5_diff_norm[node][2])
-        to_rating_top_4_diff_norm.append(seller_rating_top_5_diff_norm[node][3])
-        to_rating_top_5_diff_norm.append(seller_rating_top_5_diff_norm[node][4])
 print("4")
-dataset = pd.DataFrame({'node': parsed_node, 'indegree': indegree, 'outdegree':outdegree,
+dataset = pd.DataFrame({'indegree': indegree, 'outdegree':outdegree,
     'avg_ratings_gave': avg_ratings_gave, "avg_ratings_received": avg_ratings_received,
     'std_ratings_gave': std_ratings_gave, "std_ratings_received": std_ratings_received,
     'from_rating_top_1_diff': from_rating_top_1_diff, 'from_rating_top_2_diff': from_rating_top_2_diff,
-    'from_rating_top_3_diff': from_rating_top_3_diff, 'from_rating_top_4_diff': from_rating_top_4_diff, 
-    'from_rating_top_5_diff': from_rating_top_5_diff, 
     'from_rating_last_1_diff': from_rating_last_1_diff, 'from_rating_last_2_diff': from_rating_last_2_diff,
-    'from_rating_last_3_diff': from_rating_last_3_diff, 'from_rating_last_4_diff': from_rating_last_4_diff, 
-    'from_rating_last_5_diff': from_rating_last_5_diff, 
     'from_rating_top_1_diff_norm': from_rating_top_1_diff_norm, 'from_rating_top_2_diff_norm': from_rating_top_2_diff_norm,
-    'from_rating_top_3_diff_norm': from_rating_top_3_diff_norm, 'from_rating_top_4_diff_norm': from_rating_top_4_diff_norm, 
-    'from_rating_top_5_diff_norm': from_rating_top_5_diff_norm, 
     'to_rating_top_1_diff': to_rating_top_1_diff, 'to_rating_top_2_diff': to_rating_top_2_diff,
-    'to_rating_top_3_diff': to_rating_top_3_diff, 'to_rating_top_4_diff': to_rating_top_4_diff, 
-    'to_rating_top_5_diff': to_rating_top_5_diff, 
     'to_rating_last_1_diff': to_rating_last_1_diff, 'to_rating_last_2_diff': to_rating_last_2_diff,
-    'to_rating_last_3_diff': to_rating_last_3_diff, 'to_rating_last_4_diff': to_rating_last_4_diff, 
-    'to_rating_last_5_diff': to_rating_last_5_diff, 
     'to_rating_top_1_diff_norm': to_rating_top_1_diff_norm, 'to_rating_top_2_diff_norm': to_rating_top_2_diff_norm,
-    'to_rating_top_3_diff_norm': to_rating_top_3_diff_norm, 'to_rating_top_4_diff_norm': to_rating_top_4_diff_norm, 
-    'to_rating_top_5_diff_norm': to_rating_top_5_diff_norm, 
     'label': parsed_label},
-    columns=['node', 'indegree', 'outdegree', 'avg_ratings_gave', "avg_ratings_received",
+    columns=['indegree', 'outdegree', 'avg_ratings_gave', "avg_ratings_received",
     'std_ratings_gave', "std_ratings_received",
     'from_rating_top_1_diff', 'from_rating_top_2_diff',
-    'from_rating_top_3_diff', 'from_rating_top_4_diff', 
-    'from_rating_top_5_diff', 
     'from_rating_last_1_diff', 'from_rating_last_2_diff',
-    'from_rating_last_3_diff', 'from_rating_last_4_diff', 
-    'from_rating_last_5_diff', 
-    'from_rating_top_1_diff_norm', 'from_rating_top_2_diff_norm',
-    'from_rating_top_3_diff_norm', 'from_rating_top_4_diff_norm', 
-    'from_rating_top_5_diff_norm', 
+    'from_rating_top_1_diff_norm', 'from_rating_top_2_diff_norm', 
     'to_rating_top_1_diff', 'to_rating_top_2_diff',
-    'to_rating_top_3_diff', 'to_rating_top_4_diff', 
-    'to_rating_top_5_diff', 
     'to_rating_last_1_diff', 'to_rating_last_2_diff',
-    'to_rating_last_3_diff', 'to_rating_last_4_diff', 
-    'to_rating_last_5_diff', 
-    'to_rating_top_1_diff_norm', 'to_rating_top_2_diff_norm',
-    'to_rating_top_3_diff_norm', 'to_rating_top_4_diff_norm', 
-    'to_rating_top_5_diff_norm', 'label'])
+    'to_rating_top_1_diff_norm', 'to_rating_top_2_diff_norm', 'label'])
 dataset = dataset.sample(frac=1)
-dataset.to_csv("dataset.csv", index=False)
+labels = dataset["label"]
+dataset = (dataset-dataset.mean())/dataset.std()
+dataset["label"] = labels
+dataset.to_csv("dataset.csv", index=False, header=False)
 print("done")
 
 

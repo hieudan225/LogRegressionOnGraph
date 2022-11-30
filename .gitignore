@@ -1,2 +1,6 @@
 data/
 .DS_Store
+data*
+logs/
+new_dataset.csv
+spec.pkl

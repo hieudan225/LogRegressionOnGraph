@@ -12,7 +12,7 @@ from seldonian.models.models import (
 from seldonian.models import objectives
 
 if __name__ == '__main__':
-    data_pth = "dataset.csv"
+    data_pth = "dataset1.csv"
     metadata_pth = "metadata.json"
     save_dir = '.'
     os.makedirs(save_dir,exist_ok=True)
@@ -36,7 +36,8 @@ if __name__ == '__main__':
     primary_objective = objectives.binary_logistic_loss
     
     # Define behavioral constraints
-    constraint_strs = ["FNR <= 0.5"] #'min((PR | [M])/(PR | [F]),(PR | [F])/(PR | [M])) >= 0.9'] 
+    constraint_strs = ["FNR <= 0.2"]
+    # 'min((PR | [high_rater_received])/(PR | [low_rater_received]),(PR | [low_rater_received])/(PR | [high_rater_received])) >= 0.9'] #
     deltas = [0.05]
     
     # For each constraint (in this case only one), make a parse tree
@@ -50,22 +51,24 @@ if __name__ == '__main__':
         model=model,
         parse_trees=parse_trees,
         sub_regime=sub_regime,
-        frac_data_in_safety=0.6,
+        frac_data_in_safety=0.4,
         primary_objective=primary_objective,
         initial_solution_fn=model.fit,
         use_builtin_primary_gradient_fn=True,
         optimization_technique='gradient_descent',
         optimizer='adam',
         optimization_hyperparams={
-            'lambda_init'   : np.array([0.5]),
-            'alpha_theta'   : 0.01,
-            'alpha_lamb'    : 0.01,
-            'beta_velocity' : 0.9,
-            'beta_rmsprop'  : 0.95,
-            'use_batches'   : False,
+            'lambda_init'   : np.array([0.01]),
+            'alpha_theta'   : 0.0001,
+            'alpha_lamb'    : 0.0001,
+            'beta_velocity' : 0.009,
+            'beta_rmsprop'  : 0.0095,
+            'use_batches'   : True,
+            'batch_size'    : 100,
+            'n_epochs'      : 1500,
             'num_iters'     : 1500,
             'gradient_library': "autograd",
-            'hyper_search'  : None,
+            'hyper_search'  : True,
             'verbose'       : True,
         }
     )
