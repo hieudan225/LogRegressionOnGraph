@@ -19,15 +19,10 @@
         "to_rating_last_2_diff",
         "to_rating_top_1_diff_norm",
         "to_rating_top_2_diff_norm",
-        "high_rater_received", 
-        "high_of_rater_gave",
-        "low_rater_received", 
-        "low_of_rater_gave",
-        "label"],
+        "label",
+        "high_ratings_giver",
+        "low_ratings_giver"],
     "label_col_names":["label"],
-    "sensitive_col_names":["outdegree",
-        "high_rater_received", 
-        "high_of_rater_gave",
-        "low_rater_received", 
-        "low_of_rater_gave"]
+    "sensitive_col_names":["high_ratings_giver",
+        "low_ratings_giver"]
 }
